@@ -6,7 +6,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 
-#[feature(absolute_path)]
 fn main() {
     let parent_dir_pathbuf = PathBuf::from("../");
     let parent_dir_pathbuf_as_string = parent_dir_pathbuf
