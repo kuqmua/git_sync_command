@@ -7,7 +7,7 @@ use std::sync::Mutex;
 use std::thread;
 
 fn main() {
-    let parent_dir_pathbuf = PathBuf::from("../");
+    let parent_dir_pathbuf = PathBuf::from("../../");
     let parent_dir_pathbuf_as_string = parent_dir_pathbuf
         .clone()
         .into_os_string()
@@ -21,7 +21,7 @@ fn main() {
         .into_os_string()
         .into_string()
         .expect("cannot convert canonicalize_pathbuf_as_string to string");
-    let contents = fs::read_to_string("../.gitmodules").expect("cannot read .gitmodules file");
+    let contents = fs::read_to_string("../../.gitmodules").expect("cannot read .gitmodules file");
     Command::new("git")
         .args(["version"])
         .output()
