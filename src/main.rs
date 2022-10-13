@@ -9,7 +9,7 @@ use std::thread;
 fn main() {
     dotenv::dotenv().expect("cannot initialize dotenv");
     let string_path = match std::env::var("GITMODULES_PATH") {
-        Err(e) => panic!("failed to find std::env::var GITMODULES_PATH"),
+        Err(_) => panic!("failed to find std::env::var GITMODULES_PATH"),
         Ok(string_handle) => string_handle,
     };
     let parent_dir_pathbuf = PathBuf::from(string_path);
