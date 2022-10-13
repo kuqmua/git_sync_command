@@ -125,21 +125,21 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         });
     }
     if let Err(e) = Command::new("git")
-        .args(["checkout", "main"])
-        .current_dir(&path)
-        .output()
-    {
-        return Err(GitCommandError::CheckoutMain {
-            path,
-            error: format!("{e}"),
-        });
-    }
-    if let Err(e) = Command::new("git")
         .args(["pull"])
         .current_dir(&path)
         .output()
     {
         return Err(GitCommandError::Pull {
+            path,
+            error: format!("{e}"),
+        });
+    }
+    if let Err(e) = Command::new("git")
+        .args(["checkout", "main"])
+        .current_dir(&path)
+        .output()
+    {
+        return Err(GitCommandError::CheckoutMain {
             path,
             error: format!("{e}"),
         });
