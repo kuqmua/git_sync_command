@@ -35,6 +35,10 @@ fn main() {
         })
         .collect();
     println!("working..");
+    Command::new("git")
+        .args(["reset", "--hard"])
+        .output()
+        .expect("failed use git reset --hard");
     let mut threads_vector = Vec::with_capacity(paths_vec.len());
     let error_vec_arc_mutex = Arc::new(Mutex::new(Vec::<GitCommandError>::new()));
     paths_vec.into_iter().for_each(|path| {
