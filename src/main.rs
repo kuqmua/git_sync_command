@@ -68,7 +68,6 @@ fn main() {
 #[derive(Clone, Debug)]
 enum GitCommandError {
     CheckoutDot { path: String, error: String },
-    SubmoduleInit { path: String, error: String },
     SubmoduleUpdate { path: String, error: String },
     CheckoutMain { path: String, error: String },
     Pull { path: String, error: String },
@@ -79,9 +78,6 @@ impl Display for GitCommandError {
         match self {
             GitCommandError::CheckoutDot { path, error } => {
                 write!(f, "git checkout . error: {}, path: {}", error, path)
-            }
-            GitCommandError::SubmoduleInit { path, error } => {
-                write!(f, "git submodule init error: {}, path: {}", error, path)
             }
             GitCommandError::SubmoduleUpdate { path, error } => {
                 write!(f, "git submodule update error: {}, path: {}", error, path)
@@ -109,17 +105,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         });
     }
     if let Err(e) = Command::new("git")
-        .args(["submodule", "init"])
-        .current_dir(&path)
-        .output()
-    {
-        return Err(GitCommandError::SubmoduleInit {
-            path,
-            error: format!("{e}"),
-        });
-    }
-    if let Err(e) = Command::new("git")
-        .args(["submodule", "update"])
+        .args(["submodule", "update", "--init", "--recursive"])
         .current_dir(&path)
         .output()
     {
