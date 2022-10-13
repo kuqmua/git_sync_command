@@ -7,7 +7,12 @@ use std::sync::Mutex;
 use std::thread;
 
 fn main() {
-    let parent_dir_pathbuf = PathBuf::from("../../");
+    dotenv::dotenv().expect("cannot initialize dotenv");
+    let string_path = match std::env::var("GITMODULES_PATH") {
+        Err(e) => panic!("failed to find std::env::var GITMODULES_PATH"),
+        Ok(string_handle) => string_handle,
+    };
+    let parent_dir_pathbuf = PathBuf::from(string_path);
     let parent_dir_pathbuf_as_string = parent_dir_pathbuf
         .clone()
         .into_os_string()
