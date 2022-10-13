@@ -29,21 +29,11 @@ fn main() {
     let substring_value = "path = ";
     let paths_vec: Vec<String> = contents
         .lines()
-        .filter_map(|e| match e.find("path = ") {
-            Some(index) => Some(e[index + substring_value.len()..].to_string()),
-            None => None,
+        .filter_map(|e| {
+            e.find("path = ")
+                .map(|index| e[index + substring_value.len()..].to_string())
         })
         .collect();
-    if cfg!(target_os = "linux") {
-        threads_logic(paths_vec, canonicalize_pathbuf_as_string);
-    } else if cfg!(target_os = "windows") {
-        threads_logic(paths_vec, canonicalize_pathbuf_as_string);
-    } else {
-        panic!("cannot find out target os")
-    };
-}
-
-fn threads_logic(paths_vec: Vec<String>, canonicalize_pathbuf_as_string: String) {
     println!("working..");
     let mut threads_vector = Vec::with_capacity(paths_vec.len());
     let error_vec_arc_mutex = Arc::new(Mutex::new(Vec::<GitCommandError>::new()));
@@ -78,6 +68,8 @@ fn threads_logic(paths_vec: Vec<String>, canonicalize_pathbuf_as_string: String)
 #[derive(Clone, Debug)]
 enum GitCommandError {
     CheckoutDot { path: String, error: String },
+    SubmoduleInit { path: String, error: String },
+    SubmoduleUpdate { path: String, error: String },
     CheckoutMain { path: String, error: String },
     Pull { path: String, error: String },
 }
@@ -87,6 +79,12 @@ impl Display for GitCommandError {
         match self {
             GitCommandError::CheckoutDot { path, error } => {
                 write!(f, "git checkout . error: {}, path: {}", error, path)
+            }
+            GitCommandError::SubmoduleInit { path, error } => {
+                write!(f, "git submodule init error: {}, path: {}", error, path)
+            }
+            GitCommandError::SubmoduleUpdate { path, error } => {
+                write!(f, "git submodule update error: {}, path: {}", error, path)
             }
             GitCommandError::CheckoutMain { path, error } => {
                 write!(f, "git checkout main error: {}, path: {}", error, path)
@@ -106,7 +104,27 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .output()
     {
         return Err(GitCommandError::CheckoutDot {
-            path: path,
+            path,
+            error: format!("{e}"),
+        });
+    }
+    if let Err(e) = Command::new("git")
+        .args(["submodule", "init"])
+        .current_dir(&path)
+        .output()
+    {
+        return Err(GitCommandError::SubmoduleInit {
+            path,
+            error: format!("{e}"),
+        });
+    }
+    if let Err(e) = Command::new("git")
+        .args(["submodule", "update"])
+        .current_dir(&path)
+        .output()
+    {
+        return Err(GitCommandError::SubmoduleUpdate {
+            path,
             error: format!("{e}"),
         });
     }
@@ -116,7 +134,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .output()
     {
         return Err(GitCommandError::CheckoutMain {
-            path: path,
+            path,
             error: format!("{e}"),
         });
     }
@@ -126,7 +144,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .output()
     {
         return Err(GitCommandError::Pull {
-            path: path,
+            path,
             error: format!("{e}"),
         });
     }
