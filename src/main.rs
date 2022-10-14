@@ -40,6 +40,7 @@ fn main() {
                 .map(|index| e[index + substring_value.len()..].to_string())
         })
         .collect();
+    println!("{:#?} {}", paths_vec, paths_vec.len());
     println!("working..");
     Command::new("git")
         .args(["reset", "--hard"])
@@ -108,6 +109,7 @@ impl Display for GitCommandError {
 
 fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), GitCommandError> {
     let path = format!("{}/{}", canonicalize_pathbuf_as_string, path);
+    println!("start {}", path);
     if let Err(e) = Command::new("git")
         .args(["checkout", "."])
         .current_dir(&path)
@@ -118,6 +120,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
             error: format!("{e}"),
         });
     }
+    println!("git checkout . {}", path);
     if let Err(e) = Command::new("git")
         .args(["submodule", "update", "--init", "--recursive"])
         .current_dir(&path)
@@ -128,6 +131,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
             error: format!("{e}"),
         });
     }
+    println!("git submodule update --init --recursive {}", path);
     if let Err(e) = Command::new("git")
         .args(["pull"])
         .current_dir(&path)
@@ -138,6 +142,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
             error: format!("{e}"),
         });
     }
+    println!("git pull {}", path);
     if let Err(e) = Command::new("git")
         .args(["checkout", "main"])
         .current_dir(&path)
@@ -148,6 +153,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
             error: format!("{e}"),
         });
     }
+    println!("git checkout main {}", path);
     if let Err(e) = Command::new("cargo")
         .args(["build"])
         .current_dir(&path)
@@ -158,5 +164,6 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
             error: format!("{e}"),
         });
     }
+    println!("git cargo build {}", path);
     Ok(())
 }
