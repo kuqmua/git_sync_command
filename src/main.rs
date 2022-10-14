@@ -81,6 +81,7 @@ enum GitCommandError {
     SubmoduleUpdate { path: String, error: String },
     CheckoutMain { path: String, error: String },
     Pull { path: String, error: String },
+    CargoBuild { path: String, error: String },
 }
 
 impl Display for GitCommandError {
@@ -97,6 +98,9 @@ impl Display for GitCommandError {
             }
             GitCommandError::Pull { path, error } => {
                 write!(f, "git pull error: {}, path: {}", error, path)
+            }
+            GitCommandError::CargoBuild { path, error } => {
+                write!(f, "git cargo build error: {}, path: {}", error, path)
             }
         }
     }
@@ -140,6 +144,16 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .output()
     {
         return Err(GitCommandError::CheckoutMain {
+            path,
+            error: format!("{e}"),
+        });
+    }
+    if let Err(e) = Command::new("cargo")
+        .args(["build"])
+        .current_dir(&path)
+        .output()
+    {
+        return Err(GitCommandError::CargoBuild {
             path,
             error: format!("{e}"),
         });
