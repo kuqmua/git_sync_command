@@ -47,7 +47,7 @@ fn main() {
         .output()
         .expect("failed use git reset --hard");
     let mut threads_vector = Vec::with_capacity(paths_vec.len());
-    let error_vec_arc_mutex = Arc::new(Mutex::new(Vec::<GitCommandError>::new()));
+    let error_vec_arc_mutex = Arc::new(Mutex::new(Vec::<CommandError>::new()));
     paths_vec.into_iter().for_each(|path| {
         let error_vec_arc_mutex_arc_cloned = Arc::clone(&error_vec_arc_mutex);
         let canonicalize_pathbuf_as_string_cloned = canonicalize_pathbuf_as_string.clone();
@@ -77,7 +77,7 @@ fn main() {
 }
 
 #[derive(Clone, Debug)]
-enum GitCommandError {
+enum CommandError {
     CheckoutDot { path: String, error: String },
     SubmoduleUpdate { path: String, error: String },
     CheckoutMain { path: String, error: String },
@@ -85,29 +85,29 @@ enum GitCommandError {
     CargoBuild { path: String, error: String },
 }
 
-impl Display for GitCommandError {
+impl Display for CommandError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            GitCommandError::CheckoutDot { path, error } => {
+            CommandError::CheckoutDot { path, error } => {
                 write!(f, "git checkout . error: {}, path: {}", error, path)
             }
-            GitCommandError::SubmoduleUpdate { path, error } => {
+            CommandError::SubmoduleUpdate { path, error } => {
                 write!(f, "git submodule update error: {}, path: {}", error, path)
             }
-            GitCommandError::CheckoutMain { path, error } => {
+            CommandError::CheckoutMain { path, error } => {
                 write!(f, "git checkout main error: {}, path: {}", error, path)
             }
-            GitCommandError::Pull { path, error } => {
+            CommandError::Pull { path, error } => {
                 write!(f, "git pull error: {}, path: {}", error, path)
             }
-            GitCommandError::CargoBuild { path, error } => {
-                write!(f, "git cargo build error: {}, path: {}", error, path)
+            CommandError::CargoBuild { path, error } => {
+                write!(f, "cargo build error: {}, path: {}", error, path)
             }
         }
     }
 }
 
-fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), GitCommandError> {
+fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), CommandError> {
     let path = format!("{}/{}", canonicalize_pathbuf_as_string, path);
     println!("start {}", path);
     if let Err(e) = Command::new("git")
@@ -115,7 +115,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .current_dir(&path)
         .output()
     {
-        return Err(GitCommandError::CheckoutDot {
+        return Err(CommandError::CheckoutDot {
             path,
             error: format!("{e}"),
         });
@@ -126,7 +126,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .current_dir(&path)
         .output()
     {
-        return Err(GitCommandError::SubmoduleUpdate {
+        return Err(CommandError::SubmoduleUpdate {
             path,
             error: format!("{e}"),
         });
@@ -137,7 +137,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .current_dir(&path)
         .output()
     {
-        return Err(GitCommandError::Pull {
+        return Err(CommandError::Pull {
             path,
             error: format!("{e}"),
         });
@@ -148,7 +148,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .current_dir(&path)
         .output()
     {
-        return Err(GitCommandError::CheckoutMain {
+        return Err(CommandError::CheckoutMain {
             path,
             error: format!("{e}"),
         });
@@ -159,11 +159,11 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         .current_dir(&path)
         .output()
     {
-        return Err(GitCommandError::CargoBuild {
+        return Err(CommandError::CargoBuild {
             path,
             error: format!("{e}"),
         });
     }
-    println!("git cargo build {}", path);
+    println!("cargo build {}", path);
     Ok(())
 }
