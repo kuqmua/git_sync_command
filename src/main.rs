@@ -26,7 +26,7 @@ fn main() {
         .into_os_string()
         .into_string()
         .expect("cannot convert canonicalize_pathbuf_as_string to string");
-    let contents = fs::read_to_string(&format!("{}.gitmodules", parent_dir_pathbuf_as_string))
+    let contents = fs::read_to_string(format!("{parent_dir_pathbuf_as_string}.gitmodules"))
         .expect("cannot read .gitmodules file");
     Command::new("git")
         .args(["version"])
