@@ -1,24 +1,17 @@
-use core::fmt::Display;
-use std::fs;
-use std::path::PathBuf;
-use std::process::Command;
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::thread;
-
 fn main() {
     dotenv::dotenv().expect("cannot initialize dotenv");
-    let string_path = match std::env::var("GITMODULES_PATH") {
-        Err(_) => panic!("failed to find std::env::var GITMODULES_PATH"),
+    let gitmodules_path_env_name = "GITMODULES_PATH";
+    let string_path = match std::env::var(gitmodules_path_env_name) {
+        Err(_) => panic!("failed to find std::env::var {gitmodules_path_env_name}"),
         Ok(string_handle) => string_handle,
     };
-    let parent_dir_pathbuf = PathBuf::from(string_path);
+    let parent_dir_pathbuf = std::path::PathBuf::from(string_path);
     let parent_dir_pathbuf_as_string = parent_dir_pathbuf
         .clone()
         .into_os_string()
         .into_string()
         .expect("cannot convert parent_dir_pathbuf to string");
-    let canonicalize_pathbuf = match fs::canonicalize(&parent_dir_pathbuf) {
+    let canonicalize_pathbuf = match std::fs::canonicalize(&parent_dir_pathbuf) {
         Ok(pathbuf) => pathbuf,
         Err(e) => panic!("error: {e}, path: {parent_dir_pathbuf_as_string}"),
     };
@@ -26,9 +19,9 @@ fn main() {
         .into_os_string()
         .into_string()
         .expect("cannot convert canonicalize_pathbuf_as_string to string");
-    let contents = fs::read_to_string(format!("{parent_dir_pathbuf_as_string}.gitmodules"))
+    let contents = std::fs::read_to_string(format!("{parent_dir_pathbuf_as_string}.gitmodules"))
         .expect("cannot read .gitmodules file");
-    Command::new("git")
+    std::process::Command::new("git")
         .args(["version"])
         .output()
         .expect("failed use git version (just to check is there git installed or not)");
@@ -42,16 +35,17 @@ fn main() {
         .collect();
     println!("{:#?} {}", paths_vec, paths_vec.len());
     println!("working..");
-    Command::new("git")
+    std::process::Command::new("git")
         .args(["reset", "--hard"])
         .output()
         .expect("failed use git reset --hard");
     let mut threads_vector = Vec::with_capacity(paths_vec.len());
-    let error_vec_arc_mutex = Arc::new(Mutex::new(Vec::<CommandError>::new()));
+    let error_vec_arc_mutex =
+        std::sync::Arc::new(std::sync::Mutex::new(Vec::<CommandError>::new()));
     paths_vec.into_iter().for_each(|path| {
-        let error_vec_arc_mutex_arc_cloned = Arc::clone(&error_vec_arc_mutex);
+        let error_vec_arc_mutex_arc_cloned = std::sync::Arc::clone(&error_vec_arc_mutex);
         let canonicalize_pathbuf_as_string_cloned = canonicalize_pathbuf_as_string.clone();
-        let handle = thread::spawn(move || {
+        let handle = std::thread::spawn(move || {
             if let Err(e) = commands(canonicalize_pathbuf_as_string_cloned, path) {
                 let mut error_vec_arc_mutex_arc_cloned_locked = error_vec_arc_mutex_arc_cloned
                     .lock()
@@ -85,7 +79,7 @@ enum CommandError {
     CargoBuild { path: String, error: String },
 }
 
-impl Display for CommandError {
+impl std::fmt::Display for CommandError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             CommandError::CheckoutDot { path, error } => {
@@ -110,7 +104,7 @@ impl Display for CommandError {
 fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), CommandError> {
     let path = format!("{}/{}", canonicalize_pathbuf_as_string, path);
     println!("start {}", path);
-    if let Err(e) = Command::new("git")
+    if let Err(e) = std::process::Command::new("git")
         .args(["checkout", "."])
         .current_dir(&path)
         .output()
@@ -121,7 +115,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         });
     }
     println!("git checkout . {}", path);
-    if let Err(e) = Command::new("git")
+    if let Err(e) = std::process::Command::new("git")
         .args(["submodule", "update", "--init", "--recursive"])
         .current_dir(&path)
         .output()
@@ -132,7 +126,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         });
     }
     println!("git submodule update --init --recursive {}", path);
-    if let Err(e) = Command::new("git")
+    if let Err(e) = std::process::Command::new("git")
         .args(["pull"])
         .current_dir(&path)
         .output()
@@ -143,7 +137,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         });
     }
     println!("git pull {}", path);
-    if let Err(e) = Command::new("git")
+    if let Err(e) = std::process::Command::new("git")
         .args(["checkout", "main"])
         .current_dir(&path)
         .output()
@@ -154,7 +148,7 @@ fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), 
         });
     }
     println!("git checkout main {}", path);
-    if let Err(e) = Command::new("cargo")
+    if let Err(e) = std::process::Command::new("cargo")
         .args(["build"])
         .current_dir(&path)
         .output()
