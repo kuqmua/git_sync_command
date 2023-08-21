@@ -39,35 +39,36 @@ fn main() {
         .args(["reset", "--hard"])
         .output()
         .expect("failed use git reset --hard");
-    let mut threads_vector = Vec::with_capacity(paths_vec.len());
-    let error_vec_arc_mutex =
-        std::sync::Arc::new(std::sync::Mutex::new(Vec::<CommandError>::new()));
+    // let mut threads_vector = Vec::with_capacity(paths_vec.len());
+    // let error_vec_arc_mutex =
+    //     std::sync::Arc::new(std::sync::Mutex::new(Vec::<CommandError>::new()));
     paths_vec.into_iter().for_each(|path| {
-        let error_vec_arc_mutex_arc_cloned = std::sync::Arc::clone(&error_vec_arc_mutex);
+        // let error_vec_arc_mutex_arc_cloned = std::sync::Arc::clone(&error_vec_arc_mutex);
         let canonicalize_pathbuf_as_string_cloned = canonicalize_pathbuf_as_string.clone();
-        let handle = std::thread::spawn(move || {
-            if let Err(e) = commands(canonicalize_pathbuf_as_string_cloned, path) {
-                let mut error_vec_arc_mutex_arc_cloned_locked = error_vec_arc_mutex_arc_cloned
-                    .lock()
-                    .expect("cannot lock error_vec_arc_mutex_arc_cloned");
-                error_vec_arc_mutex_arc_cloned_locked.push(e);
-            }
-        });
-        threads_vector.push(handle);
-    });
-    threads_vector.into_iter().for_each(|t| {
-        t.join().expect("cannot join one of the threads");
-    });
-    let error_vec_arc_mutex_done = error_vec_arc_mutex
-        .lock()
-        .expect("cannot lock error_vec_arc_mutex")
-        .to_vec();
-    match error_vec_arc_mutex_done.is_empty() {
-        true => println!("done!"),
-        false => {
-            eprint!("{:#?}", error_vec_arc_mutex_done)
+        // let handle = std::thread::spawn(move || {
+        if let Err(e) = commands(canonicalize_pathbuf_as_string_cloned, path) {
+            // let mut error_vec_arc_mutex_arc_cloned_locked = error_vec_arc_mutex_arc_cloned
+            //     .lock()
+            //     .expect("cannot lock error_vec_arc_mutex_arc_cloned");
+            // error_vec_arc_mutex_arc_cloned_locked.push(e);
+            panic!("command error: {e:#?}")
         }
-    }
+        // });
+        // threads_vector.push(handle);
+    });
+    // threads_vector.into_iter().for_each(|t| {
+    //     t.join().expect("cannot join one of the threads");
+    // });
+    // let error_vec_arc_mutex_done = error_vec_arc_mutex
+    //     .lock()
+    //     .expect("cannot lock error_vec_arc_mutex")
+    //     .to_vec();
+    // match error_vec_arc_mutex_done.is_empty() {
+    //     true => println!("done!"),
+    //     false => {
+    //         eprint!("{:#?}", error_vec_arc_mutex_done)
+    //     }
+    // }
 }
 
 #[derive(Clone, Debug)]
