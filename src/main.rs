@@ -73,11 +73,11 @@ fn main() {
 
 #[derive(Clone, Debug)]
 enum CommandError {
-    CheckoutDot { path: String, error: String },
-    SubmoduleUpdate { path: String, error: String },
-    CheckoutMain { path: String, error: String },
-    Pull { path: String, error: String },
-    CargoBuild { path: String, error: String },
+    CheckoutDot { path: std::string::String, error: std::string::String },
+    SubmoduleUpdate { path: std::string::String, error: std::string::String },
+    CheckoutMain { path: std::string::String, error: std::string::String },
+    Pull { path: std::string::String, error: std::string::String },
+    CargoBuild { path: std::string::String, error: std::string::String },
 }
 
 impl std::fmt::Display for CommandError {
@@ -102,7 +102,7 @@ impl std::fmt::Display for CommandError {
     }
 }
 
-fn commands(canonicalize_pathbuf_as_string: String, path: String) -> Result<(), CommandError> {
+fn commands(canonicalize_pathbuf_as_string: std::string::String, path: std::string::String) -> Result<(), CommandError> {
     let path = format!("{}/{}", canonicalize_pathbuf_as_string, path);
     println!("start {}", path);
     if let Err(e) = std::process::Command::new("git")
